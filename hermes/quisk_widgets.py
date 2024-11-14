@@ -112,6 +112,22 @@ class BottomWidgets:	# Add extra widgets to the bottom of the screen
       else:
         b.SetValue(False)
         b.SetIndex(0)
+    # mode change cases
+    if self.mode == "Repeat": # was repeat
+      self.repeat(False)
+    if self.mode == "ANA LpBk" or self.mode == "DIG LpBk": # was loopback
+      self.hardware.WriteAD9866(0x0D,0x01)
+    if mode == "Repeat": # now repeat
+      self.repeat(True)
+    if mode == "ANA LpBk": # now analog loopback
+      self.hardware.WriteAD9866(0x0D,0x81)
+    if mode == "DIG LpBk": # now digital loopback
+      self.hardware.WriteAD9866(0x0D,0x41)
+    self.mode = mode
+  def repeat(on): #TODO
+    temp = 0
+    # if on:
+    # else:
   def Code2Temp(self):		# Convert the HermesLite temperature code to the temperature
     temp = self.hardware.hermes_temperature
     # For best accuracy, 3.26 should be a user's measured 3.3V supply voltage.
