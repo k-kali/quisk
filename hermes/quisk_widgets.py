@@ -74,10 +74,12 @@ class BottomWidgets:	# Add extra widgets to the bottom of the screen
       szr.Add(self.text_pa_current, 0, flag=flag)
       szr.Add(self.text_fwd_power, 0, flag=flag)
       szr.Add(self.text_swr, 0, flag=flag)
-    self.repeat_button = app.QuiskCheckbutton(frame, self.OnBtnRepeat, "Repeat")
+    self.repeat_button = app.QuiskCheckbutton(frame, self.OnBtn, "Repeat")
     gbs.Add(self.repeat_button, (start_row, self.start_col + 17), (1,2), flag=wx.EXPAND)
-    self.loopback_button = app.QuiskCycleCheckbutton(frame, self.OnBtnLoopback, ("ANA LpBk","DIG LpBk"))
+    self.loopback_button = app.QuiskCycleCheckbutton(frame, self.OnBtn, ("LpBk", "ANA LpBk","DIG LpBk"))
     gbs.Add(self.loopback_button, (start_row, self.start_col + 19), (1,2), flag=wx.EXPAND)
+    self.custom_mode_btns = [self.repeat_button, self.loopback_button]
+    self.mode = "idle"
   def OnAtu(self, event):
     if not self.hardware.io_board.have_IO_Board:
       self.atu_ctrl.SetText("No ATU")
@@ -97,10 +99,19 @@ class BottomWidgets:	# Add extra widgets to the bottom of the screen
     value = self.sliderLNA.GetValue()
     self.hardware.ChangeLNA(value)
     self.application.hermes_LNA_dB = value
-  def OnBtnRepeat(self, event):
-    btn_state = 0
-  def OnBtnLoopback(self, event):
-    btn_state=0
+  def OnBtn(self, event):
+    win = event.GetEventObject()
+    for b in self.custom_mode_btns:
+      if b is win:
+        button_state = win.GetIndex()
+        b.SetValue(button_state)
+        if button_state:
+          mode = win.GetLabel()
+        else:  
+          mode = "idle"
+      else:
+        b.SetValue(False)
+        b.SetIndex(0)
   def Code2Temp(self):		# Convert the HermesLite temperature code to the temperature
     temp = self.hardware.hermes_temperature
     # For best accuracy, 3.26 should be a user's measured 3.3V supply voltage.
