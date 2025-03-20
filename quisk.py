@@ -3462,6 +3462,7 @@ class App(wx.App):
     self.remote_control_head = False
     self.remote_control_slave = False
     self.keys_down = []
+    self.QS = QS
     wx.App.__init__(self)
   def QuiskText(self, *args, **kw):			# Make our text control available to widget files
     return QuiskText(*args, **kw)
@@ -3754,6 +3755,7 @@ class App(wx.App):
     self.Bind(wx.EVT_IDLE, self.OnIdle)
     self.Bind(wx.EVT_QUERY_END_SESSION, self.OnEndSession)
     # Restore persistent program state
+
     state = None
     path = os.path.join(self.QuiskFilesDir, 'quisk_init.json')
     if os.path.isfile(path):
@@ -4767,7 +4769,7 @@ class App(wx.App):
       labels.append('FDV-U')
       shortcuts.append('F')
     if conf.add_imd_button:
-      n_imd = count
+      self.n_imd = count
       count += 1
       labels.append('IMD')
       shortcuts.append('I')
@@ -4832,7 +4834,7 @@ class App(wx.App):
         b.char_shortcut = 'I'
         b = WrapSlider(b, self.OnImdSlider, slider_value=val, display=True)
         self.midiControls["IMDSlider"] = (b, None)
-        self.modeButns.ReplaceButton(n_imd, b)
+        self.modeButns.ReplaceButton(self.n_imd, b)
       else:
         self.modeButns.AddSlider('IMD', self.OnImdSlider, slider_value=val, display=True)
     labels = ('2000', '2000', '2000', '2000', '2000', '2000')
@@ -5089,6 +5091,10 @@ class App(wx.App):
       for i in range(button_start_col, button_start_col + 12):
         gbs.AddGrowableCol(i,1)
     self.button_start_col = button_start_col
+  def DisableIMDButton(self):
+    self.modeButns.GetButtons()[self.n_imd].Disable()
+  def EnableIMDButton(self):
+    self.modeButns.GetButtons()[self.n_imd].Enable()
   def MeasureAudioVoltage(self):
     v = QS.measure_audio(-1)
     t = "%11.3f" % v
@@ -5967,6 +5973,12 @@ class App(wx.App):
       delta *= conf.cwTone
       self.ChangeRxTxFrequency(self.rxFreq + delta + self.VFO, self.txFreq + delta + self.VFO)
     Hardware.ChangeMode(mode)
+
+    if(self.mode == 'IMD' and mode != 'IMD'): # if switching out of IMD
+      self.bottom_widgets.EnableRepeatButton()
+    elif(mode == 'IMD'): # if switching to IMD
+      self.bottom_widgets.DisableRepeatButton()
+
     self.mode = mode
     self.MakeFilterButtons(self.Mode2Filters(mode))
     QS.set_rx_mode(Mode2Index.get(mode, 3))

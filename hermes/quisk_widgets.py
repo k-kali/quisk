@@ -80,6 +80,10 @@ class BottomWidgets:	# Add extra widgets to the bottom of the screen
     gbs.Add(self.loopback_button, (start_row, self.start_col + 19), (1,2), flag=wx.EXPAND)
     self.custom_mode_btns = [self.repeat_button, self.loopback_button]
     self.mode = "idle"
+    # check if IMD mode was entered upon opening the app
+    if(self.application.mode == 'IMD'):
+      print("bottom widg mode: " + self.application.mode)
+      self.DisableRepeatButton()
   def OnAtu(self, event):
     if not self.hardware.io_board.have_IO_Board:
       self.atu_ctrl.SetText("No ATU")
@@ -114,20 +118,22 @@ class BottomWidgets:	# Add extra widgets to the bottom of the screen
         b.SetIndex(0)
     # mode change cases
     if self.mode == "Repeat": # was repeat
-      self.repeat(False)
+      self.application.EnableIMDButton()
+      self.application.QS.set_repeat_mode(0)
     if self.mode == "ANA LpBk" or self.mode == "DIG LpBk": # was loopback
       self.hardware.WriteAD9866(0x0D,0x01)
     if mode == "Repeat": # now repeat
-      self.repeat(True)
+      self.application.DisableIMDButton()
+      self.application.QS.set_repeat_mode(1)
     if mode == "ANA LpBk": # now analog loopback
       self.hardware.WriteAD9866(0x0D,0x81)
     if mode == "DIG LpBk": # now digital loopback
       self.hardware.WriteAD9866(0x0D,0x41)
     self.mode = mode
-  def repeat(on): #TODO
-    temp = 0
-    # if on:
-    # else:
+  def DisableRepeatButton(self):
+    self.repeat_button.Disable()
+  def EnableRepeatButton(self):
+    self.repeat_button.Enable()
   def Code2Temp(self):		# Convert the HermesLite temperature code to the temperature
     temp = self.hardware.hermes_temperature
     # For best accuracy, 3.26 should be a user's measured 3.3V supply voltage.
