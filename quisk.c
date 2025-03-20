@@ -4695,6 +4695,15 @@ static PyObject * set_imd_level(PyObject * self, PyObject * args)
 	return Py_None;
 }
 
+static PyObject * set_repeat_mode(PyObject * self, PyObject * args)
+{	/* Set the radio to repeater mode */
+	if (!PyArg_ParseTuple (args, "i", &is_repeat_active)){
+		return NULL;
+	}
+	Py_INCREF (Py_None);
+	return Py_None;
+}
+
 static PyObject * set_mic_out_volume(PyObject * self, PyObject * args)
 {
 	int level;
@@ -6185,6 +6194,7 @@ static PyMethodDef QuiskMethods[] = {
 	{"set_mic_out_volume", set_mic_out_volume, METH_VARARGS, "Set the level of the mic output for SoftRock transmit"},
 	{"set_spot_level", set_spot_level, METH_VARARGS, "Set the spot level, or -1 for no spot"},
 	{"set_imd_level", set_imd_level, METH_VARARGS, "Set the imd level 0 to 1000."},
+	{"set_repeat_mode", set_repeat_mode, METH_VARARGS, "Toggle repeater mode."},
 	{"set_sidetone", set_sidetone, METH_VARARGS, "Set the sidetone volume and frequency."},
 	{"set_sample_bytes", set_sample_bytes, METH_VARARGS, "Set the number of bytes for each I or Q sample."},
 	{"XXset_transmit_mode", set_transmit_mode, METH_VARARGS, "Change the radio to transmit mode independent of key_down."},

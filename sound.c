@@ -8,6 +8,7 @@
 #include <sys/time.h>
 #include <time.h>
 #include <errno.h>
+#include <string.h>
 
 #ifdef MS_WINDOWS
 #include <winsock2.h>
@@ -96,6 +97,9 @@ static ty_sample_read  pt_sample_read;
 ty_sample_write quisk_pt_sample_write;
 
 static complex double cSamples[SAMP_BUFFER_SIZE];			// Complex buffer for samples
+static complex double rptSamples[SAMP_BUFFER_SIZE];			// Complex buffer for samples to repeat
+
+int is_repeat_active = 0;
 
 #if 0
 void quisk_sample_level(const char * msg, complex double * cSamples, int nSamples, double scale)
@@ -940,7 +944,13 @@ int quisk_read_sound(void)	// Called from sound thread
 		DCremove(cSamples, nSamples, quisk_sound_state.sample_rate, key_state);
 		if (nSamples <= 0)
 			QuiskSleepMicrosec(2000);
+
+		//TODO: intercept rx signal here
+		if(is_repeat_active){
+			memcpy(rptSamples, cSamples, nSamples * sizeof(complex double));
+		}
 	}
+
 	else if (Capture.handle) {		// blocking read from soundcard
 	//QuiskPrintTime("quisk_read_sound start", 0);
 		nSamples = read_sound_interface(&Capture, cSamples);
@@ -1082,7 +1092,12 @@ int quisk_read_sound(void)	// Called from sound thread
 		quisk_process_samples(cSamples, mic_count);
 #endif
 		// quisk_process_microphone returns samples at the sample rate MIC_OUT_RATE
-		mic_count = quisk_process_microphone(mic_sample_rate, cSamples, mic_count);
+		if(is_repeat_active){
+			mic_count = quisk_process_microphone(mic_sample_rate, rptSamples, mic_count);
+			printf("sending them samples\n");
+		} else {
+			mic_count = quisk_process_microphone(mic_sample_rate, cSamples, mic_count);
+		}
 #if DEBUG_MIC == 1
 		for (i = 0; i < mic_count; i++)
 			tmpSamples[i] = cSamples[i] * (double)CLIP32 / CLIP16;	// convert 16-bit samples to 32 bits

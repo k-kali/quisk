@@ -287,6 +287,7 @@ extern int quisk_noise_blanker;			// Noise blanker level, 0 for off
 extern int quisk_sidetoneCtrl;			// sidetone control value 0 to 1000
 extern double quisk_audioVolume;		// volume control for radio sound playback, 0.0 to 1.0
 extern int quiskImdLevel;				// level for rxMode IMD
+extern int is_repeat_active;			// Repeater mode toggle
 extern int quiskTxHoldState;			// state machine for Tx wait for repeater frequency shift
 extern double quisk_ctcss_freq;			// frequency in Hertz
 extern unsigned char quisk_pc_to_hermes[17 * 4];		// Data to send from the PC to the Hermes hardware
