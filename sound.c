@@ -948,6 +948,7 @@ int quisk_read_sound(void)	// Called from sound thread
 		//TODO: intercept rx signal here
 		if(is_repeat_active){
 			memcpy(rptSamples, cSamples, nSamples * sizeof(complex double));
+			printf("got: %f + %f\n", creal(rptSamples[18]), cimag(rptSamples[18]));
 		}
 	}
 
@@ -1087,17 +1088,23 @@ int quisk_read_sound(void)	// Called from sound thread
 	if (remote_control_head)
 		send_remote_mic_sound_socket(cSamples, mic_count);
 
-	if (mic_count > 0) {
+	if(is_repeat_active){
+		printf("b4 mic proc: %f + %f\n", creal(rptSamples[18]), cimag(rptSamples[18]));
+		mic_count = quisk_process_microphone(-1, rptSamples, nSamples);
+	}
+	else if (mic_count > 0) {
 #if DEBUG_MIC == 3
-		quisk_process_samples(cSamples, mic_count);
+		// if(!is_repeat_active)
+			quisk_process_samples(cSamples, mic_count);
 #endif
 		// quisk_process_microphone returns samples at the sample rate MIC_OUT_RATE
-		if(is_repeat_active){
-			mic_count = quisk_process_microphone(mic_sample_rate, rptSamples, mic_count);
-			printf("sending them samples\n");
-		} else {
+		// if(is_repeat_active){
+		// 	printf("b4 mic proc: %f + %f\n", creal(rptSamples[18]), cimag(rptSamples[18]));
+		// 	mic_count = quisk_process_microphone(mic_sample_rate, rptSamples, nSamples);
+		//	printf("sending them samples\n");
+		// } else {
 			mic_count = quisk_process_microphone(mic_sample_rate, cSamples, mic_count);
-		}
+		// }
 #if DEBUG_MIC == 1
 		for (i = 0; i < mic_count; i++)
 			tmpSamples[i] = cSamples[i] * (double)CLIP32 / CLIP16;	// convert 16-bit samples to 32 bits

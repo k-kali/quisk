@@ -1160,6 +1160,7 @@ int quisk_process_microphone(int mic_sample_rate, complex double * cSamples, int
 	static struct quisk_cHB45Filter HalfBand = {NULL, 0, 0};
 	static double ctcss_angle=0;
 	static struct alc tx_alc = {NULL};
+	extern int is_repeat_active;
 
 #if 0
 	// Measure soundcard actual sample rate
@@ -1181,6 +1182,12 @@ int quisk_process_microphone(int mic_sample_rate, complex double * cSamples, int
 	}
 #endif
 
+	if (is_repeat_active && mic_sample_rate < 0){
+		quisk_hermes_tx_add(cSamples, count, quisk_is_key_down());
+		printf("rpt: %f + %f\n", creal(cSamples[18]), cimag(cSamples[18]));
+		return count;
+	}
+
 #if DEBUG_IO || DEBUG
 	//QuiskPrintTime("", -1);
 #endif
@@ -1200,9 +1207,11 @@ int quisk_process_microphone(int mic_sample_rate, complex double * cSamples, int
 	interp = MIC_OUT_RATE / mic_sample_rate;
 	
 #if USE_GET_SIN
+	printf("sine\n");
 	get_sin(cSamples, count);	// Replace mic samples with a sin wave
 #endif
 #if USE_2TONE
+	printf("2tone\n");
 	get_2tone(cSamples, count);	// Replace mic samples with a 2-tone test signal
 #endif
 	// measure maximum microphone level
@@ -1362,9 +1371,9 @@ int quisk_process_microphone(int mic_sample_rate, complex double * cSamples, int
 		;	// hermes handles this itself
 	else if (quisk_play_state == SOFTWARE_CWKEY)
 		serial_key_samples(cSamples, count);
-        if(quisk_pt_sample_write) {	// Used for SoapySDR
+	if(quisk_pt_sample_write) {	// Used for SoapySDR
 		// Interpolate the mic samples to the Tx sample rate
-//printf("Tx sample rate %i\n", tx_sample_rate);
+		//printf("Tx sample rate %i\n", tx_sample_rate);
 		switch (tx_sample_rate) {
 		case 100000:
 			count = quisk_cInterp2HB45(cSamples, count, &HalfBand);
@@ -1400,7 +1409,10 @@ int quisk_process_microphone(int mic_sample_rate, complex double * cSamples, int
 			if ((rxMode == CWL || rxMode == CWU) && quiskSpotLevel < 0)	// CW and no Spot
 				for (i = 0; i < count; i++)
 					cSamples[i] = 0;
-			quisk_hermes_tx_add(cSamples, count, key_down);
+			if(!is_repeat_active)
+				quisk_hermes_tx_add(cSamples, count, key_down);
+			// if(is_repeat_active)
+			// 	printf("rpt: %f + %f\n", creal(cSamples[18]), cimag(cSamples[18]));
 		}
 	}
 	else if (quisk_use_rx_udp && key_down) {	// Send mic samples to UDP when key is down

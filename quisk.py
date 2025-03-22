@@ -6001,7 +6001,7 @@ class App(wx.App):
     elif mode[0:4] == 'FDV-':
       self.SetFilterByMode('FDV')
     elif mode == 'IMD':
-      self.SetFilterByMode('IMD')
+      self.SetFilterByMode('IMD') # TODO? add case for repeat mode??
     elif mode == conf.add_extern_demod:
       self.SetFilterByMode(conf.add_extern_demod)
     self.sliderSquelch.DeleteSliderWindow()
@@ -6667,6 +6667,7 @@ class App(wx.App):
       elif self.file_play_state == 1:
         if QS.set_record_state(-1):		# poll to see if playback is finished
           if  self.file_play_source == 12 and self.file_play_repeat:	# repeat the CW message
+            print("file 12, cw\n")
             self.file_play_state = 2	# Waiting for the timer to expire, and start another playback
             self.file_play_timer = self.timer + self.file_play_repeat
             self.SetPTT(False)
