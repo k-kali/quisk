@@ -948,7 +948,7 @@ int quisk_read_sound(void)	// Called from sound thread
 		//TODO: intercept rx signal here
 		if(is_repeat_active){
 			memcpy(rptSamples, cSamples, nSamples * sizeof(complex double));
-			printf("got: %f + %f\n", creal(rptSamples[18]), cimag(rptSamples[18]));
+			// printf("got: %f + %f\n", creal(rptSamples[18]), cimag(rptSamples[18]));
 		}
 	}
 
@@ -1089,7 +1089,7 @@ int quisk_read_sound(void)	// Called from sound thread
 		send_remote_mic_sound_socket(cSamples, mic_count);
 
 	if(is_repeat_active){
-		printf("b4 mic proc: %f + %f\n", creal(rptSamples[18]), cimag(rptSamples[18]));
+		// printf("b4 mic proc: %f + %f\n", creal(rptSamples[18]), cimag(rptSamples[18]));
 		mic_count = quisk_process_microphone(-1, rptSamples, nSamples);
 	}
 	else if (mic_count > 0) {

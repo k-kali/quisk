@@ -642,7 +642,9 @@ class Hardware(BaseHardware):
       value = 0
     elif value > 15:
       value = 15
-    self.WriteAD9866(0x0A, value & (1 << 6))
+    print("settin gain")
+    self.WriteAD9866(0x0E, 1)
+    self.WriteAD9866(0x0A, value | (1 << 6))
   def SetTxLevel(self):
     try:
       tx_level = self.conf.tx_level[self.band]

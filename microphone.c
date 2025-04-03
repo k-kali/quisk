@@ -927,6 +927,7 @@ void quisk_hermes_tx_send(int tx_socket, int * tx_records)
 	if (quisk_play_state != last_play_state) {
 		last_play_state = quisk_play_state;
 		serial_key_samples(NULL, 0);
+		printf("sks\n");
 	}
 	//printf("hermes_tx_send start 2: hermes_num_samples %d\n", hermes_num_samples);
 	ratio = quisk_sound_state.sample_rate / 48000;		// send rate is 48 ksps
@@ -934,7 +935,7 @@ void quisk_hermes_tx_send(int tx_socket, int * tx_records)
 	if (*tx_records / ratio < 63 * 2)		// tx_records is the number of samples received for each receiver
 		return;
 	// Send 63*2 Tx samples with control bytes
-	if (quisk_play_state == SOFTWARE_CWKEY) {	// Send CW samples
+	if (quisk_play_state == SOFTWARE_CWKEY && !is_repeat_active) {	// Send CW samples
 		serial_key_samples(cw_samples, 63 * 2);
 		j = 0;
 		for (i = 0; i < 63 * 2; i++) {
@@ -1059,7 +1060,7 @@ void quisk_hermes_tx_send(int tx_socket, int * tx_records)
 	sent = send(tx_socket, (char *)sendbuf, 1032, 0);
 	if (sent != 1032)
 		quisk_udp_mic_error("Tx UDP socket error in Hermes");
-	if (quisk_play_state == SOFTWARE_CWKEY)
+	if (quisk_play_state == SOFTWARE_CWKEY && !is_repeat_active)
 		quisk_hermes_tx_reset();
 	//printf("hermes_tx_send end: hermes_num_samples %d\n", hermes_num_samples);
 }
@@ -1189,7 +1190,7 @@ int quisk_process_microphone(int mic_sample_rate, complex double * cSamples, int
 		}
 
 		quisk_hermes_tx_add(cSamples, count, quisk_is_key_down());
-		printf("rpt: %f + %f\n", creal(cSamples[18]), cimag(cSamples[18]));
+		//printf("rpt: %f + %f\n", creal(cSamples[18]), cimag(cSamples[18]));
 		return count;
 	}
 
@@ -1212,11 +1213,9 @@ int quisk_process_microphone(int mic_sample_rate, complex double * cSamples, int
 	interp = MIC_OUT_RATE / mic_sample_rate;
 	
 #if USE_GET_SIN
-	printf("sine\n");
 	get_sin(cSamples, count);	// Replace mic samples with a sin wave
 #endif
 #if USE_2TONE
-	printf("2tone\n");
 	get_2tone(cSamples, count);	// Replace mic samples with a 2-tone test signal
 #endif
 	// measure maximum microphone level
