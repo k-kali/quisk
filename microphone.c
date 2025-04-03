@@ -1183,6 +1183,11 @@ int quisk_process_microphone(int mic_sample_rate, complex double * cSamples, int
 #endif
 
 	if (is_repeat_active && mic_sample_rate < 0){
+		// scale samples from 24 bits to 16 bits
+		for(i = 0; i < count; i++){
+			cSamples[i] /= 256;
+		}
+
 		quisk_hermes_tx_add(cSamples, count, quisk_is_key_down());
 		printf("rpt: %f + %f\n", creal(cSamples[18]), cimag(cSamples[18]));
 		return count;

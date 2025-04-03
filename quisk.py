@@ -3671,6 +3671,7 @@ class App(wx.App):
     self.freedv_mode = 'Mode 700D'		# restore FreeDV mode setting
     self.freedv_menu = None
     self.hermes_LNA_dB = 20
+    self.hermes_PGA_dB = 0
     if hasattr(Hardware, "OnChangeRxTx"):
       self.want_RxTx = True
     else:
@@ -3718,6 +3719,7 @@ class App(wx.App):
     self.sidetone_0to1 = 0		# log taper sidetone volume 0.0 to 1.0
     self.sound_thread = None
     self.mode = conf.default_mode
+    self.is_repeat_active = False
     self.color_list = None
     self.color_index = 0
     self.vardecim_set = 48000
@@ -5085,10 +5087,22 @@ class App(wx.App):
       for i in range(button_start_col, button_start_col + 12):
         gbs.AddGrowableCol(i,1)
     self.button_start_col = button_start_col
-  def DisableIMDButton(self):
-    self.modeButns.GetButtons()[self.n_imd].Disable()
-  def EnableIMDButton(self):
-    self.modeButns.GetButtons()[self.n_imd].Enable()
+
+  def EnterRepeat(self):
+    # Set TX frequency and RX frequency to be identical.
+    self.ChangeRxTxFrequency(self.VFO, self.VFO)
+
+    # Set TX and RX filters (0x09[7:0], 0x09[15:8]) to wide open or bypass.
+
+    # disable mod mode buttons
+    for button in self.modeButns.GetButtons():
+      button.Disable()
+
+  def ExitRepeat(self):
+    for button in self.modeButns.GetButtons():
+      button.Enable()
+    self.modeButns.SetLabel(self.mode)
+
   def MeasureAudioVoltage(self):
     v = QS.measure_audio(-1)
     t = "%11.3f" % v
@@ -5968,10 +5982,10 @@ class App(wx.App):
       self.ChangeRxTxFrequency(self.rxFreq + delta + self.VFO, self.txFreq + delta + self.VFO)
     Hardware.ChangeMode(mode)
 
-    if(self.mode == 'IMD' and mode != 'IMD'): # if switching out of IMD
-      self.bottom_widgets.EnableRepeatButton()
-    elif(mode == 'IMD'): # if switching to IMD
-      self.bottom_widgets.DisableRepeatButton()
+    # if(self.mode == 'IMD' and mode != 'IMD'): # if switching out of IMD
+    #   self.bottom_widgets.EnableRepeatButton()
+    # elif(mode == 'IMD'): # if switching to IMD
+    #   self.bottom_widgets.DisableRepeatButton()
 
     self.mode = mode
     self.MakeFilterButtons(self.Mode2Filters(mode))

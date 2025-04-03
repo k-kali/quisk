@@ -28,12 +28,20 @@ class BottomWidgets:	# Add extra widgets to the bottom of the screen
     gbs.Add(self.atu_ctrl, (start_row, self.start_col), (1, 2), flag=wx.EXPAND)
     bw, bh = self.atu_ctrl.GetMinSize()
     frame.Bind(wx.EVT_COMBOBOX_CLOSEUP, self.OnAtu)
+
     init = app.hermes_LNA_dB
     self.sliderLNA = app.SliderBoxHH(frame, 'RfLna %d dB', init, -12, 48, self.OnLNA, True)
     self.sliderLNA.idName = "RfLna"
     app.midiControls["RfLna"]	= (self.sliderLNA,	self.OnLNA)
     hardware.ChangeLNA(init)
     gbs.Add(self.sliderLNA, (start_row, self.start_col + 2), (1, 8), flag=wx.EXPAND)
+
+    init = app.hermes_PGA_dB
+    self.sliderPGA = app.SliderBoxHH(frame, 'RfPga %d dB', init, 0, 15, self.OnPGA, True)
+    self.sliderPGA.idName = "RfPga"
+    hardware.ChangePGA(init)
+    gbs.Add(self.sliderPGA, (start_row, self.start_col + 21), (1, 7), flag=wx.EXPAND)
+
     if conf.button_layout == "Small screen":
       # Display four data items in a single window
       self.text_temperature = app.QuiskText1(frame, '', bh)
@@ -81,9 +89,8 @@ class BottomWidgets:	# Add extra widgets to the bottom of the screen
     self.custom_mode_btns = [self.repeat_button, self.loopback_button]
     self.mode = "idle"
     # check if IMD mode was entered upon opening the app
-    if(self.application.mode == 'IMD'):
-      print("bottom widg mode: " + self.application.mode)
-      self.DisableRepeatButton()
+    # if(self.application.mode == 'IMD'):
+    #   self.DisableRepeatButton()
   def OnAtu(self, event):
     if not self.hardware.io_board.have_IO_Board:
       self.atu_ctrl.SetText("No ATU")
@@ -103,6 +110,10 @@ class BottomWidgets:	# Add extra widgets to the bottom of the screen
     value = self.sliderLNA.GetValue()
     self.hardware.ChangeLNA(value)
     self.application.hermes_LNA_dB = value
+  def OnPGA(self, event=None):
+    value = self.sliderPGA.GetValue()
+    self.hardware.ChangePGA(value)
+    self.application.hermes_PGA_dB = value
   def OnBtn(self, event):
     win = event.GetEventObject()
     for b in self.custom_mode_btns:
@@ -118,12 +129,12 @@ class BottomWidgets:	# Add extra widgets to the bottom of the screen
         b.SetIndex(0)
     # mode change cases
     if self.mode == "Repeat": # was repeat
-      self.application.EnableIMDButton()
+      self.application.ExitRepeat()
       self.application.QS.set_repeat_mode(0)
     if self.mode == "ANA LpBk" or self.mode == "DIG LpBk": # was loopback
       self.hardware.WriteAD9866(0x0D,0x01)
     if mode == "Repeat": # now repeat
-      self.application.DisableIMDButton()
+      self.application.EnterRepeat()
       self.application.QS.set_repeat_mode(1)
     if mode == "ANA LpBk": # now analog loopback
       self.hardware.WriteAD9866(0x0D,0x81)

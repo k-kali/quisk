@@ -637,6 +637,12 @@ class Hardware(BaseHardware):
     self.SetControlByte(0x0e, 3, value, False)		# C0 index == 0x0e, C3
     QS.pc_to_hermes(self.pc2hermes)
     if DEBUG: print ("Change Tx LNA to", value)
+  def ChangePGA(self, value):
+    if value < 0:
+      value = 0
+    elif value > 15:
+      value = 15
+    self.WriteAD9866(0x0A, value & (1 << 6))
   def SetTxLevel(self):
     try:
       tx_level = self.conf.tx_level[self.band]
