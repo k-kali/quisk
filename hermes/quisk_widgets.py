@@ -37,10 +37,14 @@ class BottomWidgets:	# Add extra widgets to the bottom of the screen
     gbs.Add(self.sliderLNA, (start_row, self.start_col + 2), (1, 8), flag=wx.EXPAND)
 
     init = app.hermes_PGA_dB
-    self.sliderPGA = app.SliderBoxHH(frame, 'RfPga %d dB', init, 0, 15, self.OnPGA, True)
+    self.sliderPGA = app.SliderBoxHH(frame, '', init, 0, 15, self.OnPGA, False)
+    self.pgaLabel = wx.StaticText(frame, label=f'RfPga {init * 0.5 - 7.5:.1f} dB')
     self.sliderPGA.idName = "RfPga"
     hardware.ChangePGA(init)
-    gbs.Add(self.sliderPGA, (start_row, self.start_col + 21), (1, 7), flag=wx.EXPAND)
+    gbs.Add(self.sliderPGA, (start_row, self.start_col + 23), (1, 5),
+            flag=wx.EXPAND)
+    gbs.Add(self.pgaLabel, (start_row, self.start_col + 21), (1, 2),
+            flag=wx.ALIGN_LEFT | wx.ALIGN_CENTER_VERTICAL)
 
     if conf.button_layout == "Small screen":
       # Display four data items in a single window
@@ -82,15 +86,17 @@ class BottomWidgets:	# Add extra widgets to the bottom of the screen
       szr.Add(self.text_pa_current, 0, flag=flag)
       szr.Add(self.text_fwd_power, 0, flag=flag)
       szr.Add(self.text_swr, 0, flag=flag)
+
     self.repeat_button = app.QuiskCheckbutton(frame, self.OnBtn, "Repeat")
-    gbs.Add(self.repeat_button, (start_row, self.start_col + 17), (1,2), flag=wx.EXPAND)
-    self.loopback_button = app.QuiskCycleCheckbutton(frame, self.OnBtn, ("LpBk", "ANA LpBk","DIG LpBk"))
-    gbs.Add(self.loopback_button, (start_row, self.start_col + 19), (1,2), flag=wx.EXPAND)
+    gbs.Add(self.repeat_button, (start_row, self.start_col + 17), (1,2),
+            flag=wx.EXPAND)
+    self.loopback_button = app.QuiskCycleCheckbutton(frame, self.OnBtn,
+                                                    ("LpBk", "ANA LpBk","DIG LpBk"))
+    gbs.Add(self.loopback_button, (start_row, self.start_col + 19), (1,2),
+            flag=wx.EXPAND)
     self.custom_mode_btns = [self.repeat_button, self.loopback_button]
     self.mode = "idle"
-    # check if IMD mode was entered upon opening the app
-    # if(self.application.mode == 'IMD'):
-    #   self.DisableRepeatButton()
+
   def OnAtu(self, event):
     if not self.hardware.io_board.have_IO_Board:
       self.atu_ctrl.SetText("No ATU")
@@ -113,6 +119,8 @@ class BottomWidgets:	# Add extra widgets to the bottom of the screen
   def OnPGA(self, event=None):
     value = self.sliderPGA.GetValue()
     self.hardware.ChangePGA(value)
+    db_val = value * 0.5 - 7.5
+    self.pgaLabel.SetLabel(f'RfPga {db_val:.1f} dB')
     self.application.hermes_PGA_dB = value
   def OnBtn(self, event):
     win = event.GetEventObject()
